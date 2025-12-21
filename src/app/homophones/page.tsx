@@ -9,7 +9,9 @@ import { Card } from "@/components/ui/Card";
 import { SentenceComplete } from "@/components/homophones/SentenceComplete";
 import { ExplanationCard } from "@/components/homophones/ExplanationCard";
 import { homophones, getRandomHomophoneSets, type HomophoneSet } from "@/data/homophones";
-import { recordHomophoneAttempt, recordWordAttempt } from "@/lib/db";
+import { recordHomophoneAttempt, recordWordAttempt, type CaughtPokemon } from "@/lib/db";
+import { checkAndCatchPokemon } from "@/lib/pokemonRewards";
+import { CatchAnimation } from "@/components/pokemon";
 
 type Phase = "start" | "challenge" | "results" | "learning" | "retest" | "complete";
 
@@ -45,6 +47,9 @@ export default function HomophonesPage() {
   }>>([]);
   const [retestIndex, setRetestIndex] = useState(0);
   const [retestResults, setRetestResults] = useState<ChallengeResult[]>([]);
+  
+  // Pokemon catch state
+  const [caughtPokemon, setCaughtPokemon] = useState<CaughtPokemon | null>(null);
 
   // Start a new challenge
   const startChallenge = useCallback(() => {
@@ -86,9 +91,17 @@ export default function HomophonesPage() {
     };
     setResults((prev) => [...prev, result]);
     
-    // Record in database
-    await recordHomophoneAttempt(current.set.id, isCorrect);
+    // Record in database and check for Pokemon catch
+    const { wasJustMastered } = await recordHomophoneAttempt(current.set.id, isCorrect);
     await recordWordAttempt(current.sentence.answer, isCorrect, "homophone");
+    
+    if (wasJustMastered) {
+      // Homophone set was just mastered! Try to catch a Pokemon
+      const caught = await checkAndCatchPokemon(current.set.id, 'homophone', current.set.id);
+      if (caught) {
+        setCaughtPokemon(caught);
+      }
+    }
     
     // Move to next or results/learning
     if (currentIndex < sentences.length - 1) {
@@ -166,9 +179,17 @@ export default function HomophonesPage() {
     };
     setRetestResults((prev) => [...prev, result]);
     
-    // Record in database
-    await recordHomophoneAttempt(current.set.id, isCorrect);
+    // Record in database and check for Pokemon catch
+    const { wasJustMastered } = await recordHomophoneAttempt(current.set.id, isCorrect);
     await recordWordAttempt(current.sentence.answer, isCorrect, "homophone");
+    
+    if (wasJustMastered) {
+      // Homophone set was just mastered! Try to catch a Pokemon
+      const caught = await checkAndCatchPokemon(current.set.id, 'homophone', current.set.id);
+      if (caught) {
+        setCaughtPokemon(caught);
+      }
+    }
     
     // If incorrect, go back to learning for this set
     if (!isCorrect) {
@@ -499,6 +520,12 @@ export default function HomophonesPage() {
           </details>
         </section>
       )}
+      
+      {/* Pokemon Catch Animation */}
+      <CatchAnimation 
+        pokemon={caughtPokemon} 
+        onClose={() => setCaughtPokemon(null)} 
+      />
     </div>
   );
 }

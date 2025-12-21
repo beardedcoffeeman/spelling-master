@@ -51,6 +51,24 @@ export interface UserSettings {
   lastActiveAt: string;
 }
 
+export interface CaughtPokemon {
+  id?: number;
+  pokemonId: number;
+  pokemonName: string;
+  pokemonSprite: string;
+  word: string;
+  category: 'spelling' | 'homophone';
+  tier: string;
+  caughtAt: string;
+  masteryDate: string;
+  // Full Pokemon data from API
+  types: string[];
+  height: number;
+  weight: number;
+  abilities: string[];
+  stats: { name: string; value: number }[];
+}
+
 // Database class
 class SpellingMasterDB extends Dexie {
   wordProgress!: EntityTable<WordProgress, "id">;
@@ -59,6 +77,7 @@ class SpellingMasterDB extends Dexie {
   achievements!: EntityTable<Achievement, "id">;
   streaks!: EntityTable<Streak, "id">;
   userSettings!: EntityTable<UserSettings, "id">;
+  caughtPokemon!: EntityTable<CaughtPokemon, "id">;
 
   constructor() {
     super("SpellingMasterDB");
@@ -70,6 +89,17 @@ class SpellingMasterDB extends Dexie {
       achievements: "++id, achievementId, unlockedAt",
       streaks: "++id, lastPracticeDate",
       userSettings: "++id",
+    });
+
+    // Version 2: Add caughtPokemon table
+    this.version(2).stores({
+      wordProgress: "++id, word, category, masteryStatus, lastAttemptAt",
+      homophoneProgress: "++id, homophoneSetId, lastAttemptAt",
+      sessions: "++id, startedAt, completedAt, type",
+      achievements: "++id, achievementId, unlockedAt",
+      streaks: "++id, lastPracticeDate",
+      userSettings: "++id",
+      caughtPokemon: "++id, pokemonId, word, category, caughtAt",
     });
   }
 }
@@ -115,14 +145,18 @@ export async function recordWordAttempt(
   word: string,
   correct: boolean,
   category: "statutory" | "homophone" = "statutory"
-): Promise<void> {
+): Promise<{ wasJustMastered: boolean; masteryStatus: MasteryStatus }> {
   const existing = await getWordProgress(word);
   const now = new Date().toISOString();
+  let wasJustMastered = false;
 
   if (existing) {
     const newCorrect = existing.correctCount + (correct ? 1 : 0);
     const newIncorrect = existing.incorrectCount + (correct ? 0 : 1);
     const newStatus = calculateMasteryStatus(newCorrect, newIncorrect);
+    
+    // Check if it just became mastered (wasn't before, is now)
+    wasJustMastered = existing.masteryStatus !== "mastered" && newStatus === "mastered";
 
     await db.wordProgress.update(existing.id!, {
       correctCount: newCorrect,
@@ -130,9 +164,18 @@ export async function recordWordAttempt(
       lastAttemptAt: now,
       masteryStatus: newStatus,
     });
+    
+    // Update streak
+    await updateStreak();
+    
+    return { wasJustMastered, masteryStatus: newStatus };
   } else {
     const correctCount = correct ? 1 : 0;
     const incorrectCount = correct ? 0 : 1;
+    const newStatus = calculateMasteryStatus(correctCount, incorrectCount);
+    
+    // Brand new word, check if mastered immediately (unlikely)
+    wasJustMastered = newStatus === "mastered";
 
     await db.wordProgress.add({
       word,
@@ -140,12 +183,14 @@ export async function recordWordAttempt(
       correctCount,
       incorrectCount,
       lastAttemptAt: now,
-      masteryStatus: calculateMasteryStatus(correctCount, incorrectCount),
+      masteryStatus: newStatus,
     });
+    
+    // Update streak
+    await updateStreak();
+    
+    return { wasJustMastered, masteryStatus: newStatus };
   }
-
-  // Update streak
-  await updateStreak();
 }
 
 // Homophone Progress Functions
@@ -158,26 +203,51 @@ export async function getHomophoneProgress(
 export async function recordHomophoneAttempt(
   setId: string,
   correct: boolean
-): Promise<void> {
+): Promise<{ wasJustMastered: boolean; correctCount: number; incorrectCount: number }> {
   const existing = await getHomophoneProgress(setId);
   const now = new Date().toISOString();
+  let wasJustMastered = false;
 
   if (existing) {
+    const newCorrect = existing.correctCount + (correct ? 1 : 0);
+    const newIncorrect = existing.incorrectCount + (correct ? 0 : 1);
+    const totalAttempts = newCorrect + newIncorrect;
+    const correctPercentage = totalAttempts > 0 ? (newCorrect / totalAttempts) * 100 : 0;
+    
+    // Check if it just became mastered (same criteria: 5+ attempts, 90%+)
+    const oldTotal = existing.correctCount + existing.incorrectCount;
+    const oldPercentage = oldTotal > 0 ? (existing.correctCount / oldTotal) * 100 : 0;
+    const wasntMastered = oldTotal < 5 || oldPercentage < 90;
+    const isNowMastered = totalAttempts >= 5 && correctPercentage >= 90;
+    wasJustMastered = wasntMastered && isNowMastered;
+
     await db.homophoneProgress.update(existing.id!, {
-      correctCount: existing.correctCount + (correct ? 1 : 0),
-      incorrectCount: existing.incorrectCount + (correct ? 0 : 1),
+      correctCount: newCorrect,
+      incorrectCount: newIncorrect,
       lastAttemptAt: now,
     });
+    
+    await updateStreak();
+    return { wasJustMastered, correctCount: newCorrect, incorrectCount: newIncorrect };
   } else {
+    const correctCount = correct ? 1 : 0;
+    const incorrectCount = correct ? 0 : 1;
+    const totalAttempts = correctCount + incorrectCount;
+    const correctPercentage = totalAttempts > 0 ? (correctCount / totalAttempts) * 100 : 0;
+    
+    // Check if mastered immediately (unlikely)
+    wasJustMastered = totalAttempts >= 5 && correctPercentage >= 90;
+    
     await db.homophoneProgress.add({
       homophoneSetId: setId,
-      correctCount: correct ? 1 : 0,
-      incorrectCount: correct ? 0 : 1,
+      correctCount,
+      incorrectCount,
       lastAttemptAt: now,
     });
+    
+    await updateStreak();
+    return { wasJustMastered, correctCount, incorrectCount };
   }
-
-  await updateStreak();
 }
 
 // Session Functions

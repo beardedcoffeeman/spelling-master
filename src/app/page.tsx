@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/Card";
 import { CircularProgress } from "@/components/ui/ProgressBar";
 import { getStatistics, getStreak, type Streak } from "@/lib/db";
 import { getTotalStars } from "@/lib/achievements";
+import { getCaughtPokemonCount } from "@/lib/pokemonRewards";
 
 interface Statistics {
   mastered: number;
@@ -23,19 +24,22 @@ export default function HomePage() {
   const [stats, setStats] = useState<Statistics | null>(null);
   const [streak, setStreak] = useState<Streak | null>(null);
   const [stars, setStars] = useState(0);
+  const [pokemonCount, setPokemonCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function loadData() {
       try {
-        const [statsData, streakData, starsData] = await Promise.all([
+        const [statsData, streakData, starsData, pokemonCountData] = await Promise.all([
           getStatistics(),
           getStreak(),
           getTotalStars(),
+          getCaughtPokemonCount(),
         ]);
         setStats(statsData);
         setStreak(streakData);
         setStars(starsData);
+        setPokemonCount(pokemonCountData);
       } catch (error) {
         console.error("Failed to load data:", error);
       } finally {
@@ -100,6 +104,12 @@ export default function HomePage() {
                 {isLoading ? "..." : stars}
               </div>
               <div className="text-sm text-white/70">🏆 Stars</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold">
+                {isLoading ? "..." : pokemonCount}
+              </div>
+              <div className="text-sm text-white/70">📖 Pokémon</div>
             </div>
           </motion.div>
         </div>
@@ -167,7 +177,7 @@ export default function HomePage() {
         )}
 
         {/* Main Navigation Cards */}
-        <section className="grid md:grid-cols-3 gap-6">
+        <section className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Spelling Challenge */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -241,6 +251,31 @@ export default function HomePage() {
                 </p>
                 <Button variant="secondary" size="lg" fullWidth>
                   View Progress
+                </Button>
+              </Card>
+            </Link>
+          </motion.div>
+
+          {/* Pokédex */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
+          >
+            <Link href="/pokedex" className="block h-full">
+              <Card
+                variant="interactive"
+                className="h-full flex flex-col items-center text-center p-8 hover:border-error bg-gradient-to-br from-red-50 to-blue-50"
+              >
+                <div className="text-6xl mb-4">📖</div>
+                <h3 className="text-xl font-bold text-text-primary font-display mb-2">
+                  Pokédex
+                </h3>
+                <p className="text-text-secondary text-sm mb-4 flex-1">
+                  Catch Pokémon by mastering words! View your collection and track your catches.
+                </p>
+                <Button className="bg-red-500 hover:bg-red-600 text-white" size="lg" fullWidth>
+                  Open Pokédex
                 </Button>
               </Card>
             </Link>

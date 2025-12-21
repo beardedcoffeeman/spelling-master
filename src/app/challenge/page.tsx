@@ -11,8 +11,10 @@ import { MnemonicCard } from "@/components/spelling/MnemonicCard";
 import { ResultsSummary } from "@/components/spelling/ResultsSummary";
 import { getRandomWords } from "@/data/spellings";
 import { createMultipleChoiceOptions, getMisspellingsForWord } from "@/lib/wordUtils";
-import { recordWordAttempt, startSession, updateSession, completeSession } from "@/lib/db";
+import { recordWordAttempt, startSession, updateSession, completeSession, type CaughtPokemon } from "@/lib/db";
 import { checkAndUnlockAchievements, checkPerfectRound } from "@/lib/achievements";
+import { checkAndCatchPokemon } from "@/lib/pokemonRewards";
+import { CatchAnimation } from "@/components/pokemon";
 
 // Helper to get misspellings
 function getMisspellings(word: string): string[] {
@@ -51,6 +53,9 @@ export default function ChallengePage() {
   // Retest state
   const [retestIndex, setRetestIndex] = useState(0);
   const [retestResults, setRetestResults] = useState<QuizResult[]>([]);
+  
+  // Pokemon catch state
+  const [caughtPokemon, setCaughtPokemon] = useState<CaughtPokemon | null>(null);
 
   // Start a new challenge
   const startChallenge = useCallback(async () => {
@@ -81,8 +86,16 @@ export default function ChallengePage() {
     };
     setResults((prev) => [...prev, result]);
     
-    // Record in database
-    await recordWordAttempt(currentWord, isCorrect);
+    // Record in database and check for Pokemon catch
+    const { wasJustMastered } = await recordWordAttempt(currentWord, isCorrect);
+    
+    if (wasJustMastered) {
+      // Word was just mastered! Try to catch a Pokemon
+      const caught = await checkAndCatchPokemon(currentWord, 'spelling');
+      if (caught) {
+        setCaughtPokemon(caught);
+      }
+    }
     
     // Update session
     if (sessionId) {
@@ -163,8 +176,16 @@ export default function ChallengePage() {
     };
     setRetestResults((prev) => [...prev, result]);
     
-    // Record in database
-    await recordWordAttempt(currentWord, isCorrect);
+    // Record in database and check for Pokemon catch
+    const { wasJustMastered } = await recordWordAttempt(currentWord, isCorrect);
+    
+    if (wasJustMastered) {
+      // Word was just mastered! Try to catch a Pokemon
+      const caught = await checkAndCatchPokemon(currentWord, 'spelling');
+      if (caught) {
+        setCaughtPokemon(caught);
+      }
+    }
     
     if (!isCorrect) {
       // Word still not learned - they need to learn it again
@@ -464,6 +485,12 @@ export default function ChallengePage() {
           )}
         </AnimatePresence>
       </main>
+      
+      {/* Pokemon Catch Animation */}
+      <CatchAnimation 
+        pokemon={caughtPokemon} 
+        onClose={() => setCaughtPokemon(null)} 
+      />
     </div>
   );
 }
