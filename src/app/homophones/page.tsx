@@ -11,7 +11,7 @@ import { ExplanationCard } from "@/components/homophones/ExplanationCard";
 import { homophones, getRandomHomophoneSets, type HomophoneSet } from "@/data/homophones";
 import { recordHomophoneAttempt, recordWordAttempt } from "@/lib/db";
 
-type Phase = "start" | "challenge" | "learn" | "results";
+type Phase = "start" | "challenge" | "results" | "learning" | "retest" | "complete";
 
 interface ChallengeResult {
   setId: string;
@@ -37,6 +37,14 @@ export default function HomophonesPage() {
   // Learning phase
   const [incorrectSets, setIncorrectSets] = useState<HomophoneSet[]>([]);
   const [learningIndex, setLearningIndex] = useState(0);
+  
+  // Retest phase
+  const [retestSentences, setRetestSentences] = useState<Array<{
+    set: HomophoneSet;
+    sentence: (typeof homophones)[0]["sentences"][0];
+  }>>([]);
+  const [retestIndex, setRetestIndex] = useState(0);
+  const [retestResults, setRetestResults] = useState<ChallengeResult[]>([]);
 
   // Start a new challenge
   const startChallenge = useCallback(() => {
@@ -82,7 +90,7 @@ export default function HomophonesPage() {
     await recordHomophoneAttempt(current.set.id, isCorrect);
     await recordWordAttempt(current.sentence.answer, isCorrect, "homophone");
     
-    // Move to next or results
+    // Move to next or results/learning
     if (currentIndex < sentences.length - 1) {
       setCurrentIndex((prev) => prev + 1);
     } else {
@@ -95,9 +103,14 @@ export default function HomophonesPage() {
       
       if (setsToLearn.length > 0) {
         setIncorrectSets(setsToLearn);
-        setPhase("learn");
-        setLearningIndex(0);
+        // Show results briefly then auto-transition to learning
+        setPhase("results");
+        setTimeout(() => {
+          setLearningIndex(0);
+          setPhase("learning");
+        }, 3000);
       } else {
+        // Perfect score - just show results
         setPhase("results");
       }
     }
@@ -108,9 +121,73 @@ export default function HomophonesPage() {
     if (learningIndex < incorrectSets.length - 1) {
       setLearningIndex((prev) => prev + 1);
     } else {
-      setPhase("results");
+      // Learning complete - prepare retest with different sentences
+      const retestSentencesList: typeof retestSentences = [];
+      
+      incorrectSets.forEach((set) => {
+        // Find sentences from this set that weren't used in the original challenge
+        const usedSentences = new Set(
+          sentences
+            .filter((s) => s.set.id === set.id)
+            .map((s) => s.sentence.text)
+        );
+        
+        // Get unused sentences, or reuse if all were used
+        const availableSentences = set.sentences.filter(
+          (s) => !usedSentences.has(s.text)
+        );
+        
+        // Pick one sentence for retest (prefer unused, fallback to any)
+        const sentenceToUse = 
+          availableSentences.length > 0
+            ? availableSentences[Math.floor(Math.random() * availableSentences.length)]
+            : set.sentences[Math.floor(Math.random() * set.sentences.length)];
+        
+        retestSentencesList.push({ set, sentence: sentenceToUse });
+      });
+      
+      setRetestSentences(retestSentencesList);
+      setRetestIndex(0);
+      setRetestResults([]);
+      setPhase("retest");
     }
-  }, [learningIndex, incorrectSets.length]);
+  }, [learningIndex, incorrectSets, sentences, retestSentences]);
+
+  // Handle retest answer
+  const handleRetestAnswer = useCallback(async (isCorrect: boolean) => {
+    const current = retestSentences[retestIndex];
+    
+    // Record the result
+    const result: ChallengeResult = {
+      setId: current.set.id,
+      sentence: current.sentence.text,
+      answer: current.sentence.answer,
+      correct: isCorrect,
+    };
+    setRetestResults((prev) => [...prev, result]);
+    
+    // Record in database
+    await recordHomophoneAttempt(current.set.id, isCorrect);
+    await recordWordAttempt(current.sentence.answer, isCorrect, "homophone");
+    
+    // If incorrect, go back to learning for this set
+    if (!isCorrect) {
+      // Find the index of this set in incorrectSets
+      const setIndex = incorrectSets.findIndex((s) => s.id === current.set.id);
+      if (setIndex >= 0) {
+        setLearningIndex(setIndex);
+        setPhase("learning");
+        return;
+      }
+    }
+    
+    // Move to next or complete
+    if (retestIndex < retestSentences.length - 1) {
+      setRetestIndex((prev) => prev + 1);
+    } else {
+      setPhase("complete");
+    }
+  }, [retestIndex, retestSentences, incorrectSets]);
 
   // Calculate stats
   const correctCount = useMemo(
@@ -123,6 +200,7 @@ export default function HomophonesPage() {
 
   const currentSentence = sentences[currentIndex];
   const currentLearningSet = incorrectSets[learningIndex];
+  const currentRetestSentence = retestSentences[retestIndex];
 
   return (
     <div className="min-h-screen bg-bg-primary">
@@ -232,7 +310,7 @@ export default function HomophonesPage() {
           )}
 
           {/* Learning Phase */}
-          {phase === "learn" && currentLearningSet && (
+          {phase === "learning" && currentLearningSet && (
             <motion.div
               key={`learn-${learningIndex}`}
               initial={{ opacity: 0, x: 20 }}
@@ -254,6 +332,79 @@ export default function HomophonesPage() {
                 homophoneSet={currentLearningSet}
                 onContinue={handleLearnComplete}
               />
+            </motion.div>
+          )}
+
+          {/* Retest Phase */}
+          {phase === "retest" && currentRetestSentence && (
+            <motion.div
+              key={`retest-${retestIndex}`}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="space-y-6"
+            >
+              <ProgressBar
+                current={retestIndex + 1}
+                total={retestSentences.length}
+                variant="success"
+                showLabel
+              />
+
+              <div className="text-center">
+                <p className="text-text-muted">
+                  Let&apos;s check what you learned!
+                </p>
+                <p className="text-sm text-text-muted">
+                  Word {retestIndex + 1} of {retestSentences.length}
+                </p>
+              </div>
+
+              <SentenceComplete
+                sentence={currentRetestSentence.sentence.text}
+                options={currentRetestSentence.set.words.map((w) => w.word)}
+                correctAnswer={currentRetestSentence.sentence.answer}
+                hint={currentRetestSentence.sentence.hint}
+                onAnswer={handleRetestAnswer}
+              />
+            </motion.div>
+          )}
+
+          {/* Complete Phase */}
+          {phase === "complete" && (
+            <motion.div
+              key="complete"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex flex-col items-center justify-center min-h-[60vh] text-center gap-8"
+            >
+              <motion.div
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                className="text-8xl"
+              >
+                🏆
+              </motion.div>
+
+              <div>
+                <h2 className="text-3xl font-bold text-text-primary font-display mb-3">
+                  Challenge Complete!
+                </h2>
+                <p className="text-text-secondary max-w-md">
+                  Great job! You&apos;ve finished the homophone challenge and learned the tricky pairs.
+                </p>
+              </div>
+
+              <div className="space-y-4 w-full max-w-xs">
+                <Button onClick={startChallenge} variant="success" size="lg" fullWidth>
+                  Play Again
+                </Button>
+                <Button variant="secondary" onClick={() => router.push("/")} fullWidth>
+                  Back to Home
+                </Button>
+              </div>
             </motion.div>
           )}
 
@@ -291,23 +442,28 @@ export default function HomophonesPage() {
                 </p>
               </div>
 
-              {/* Show which homophones were tricky */}
+              {/* Show which homophones need learning */}
               {incorrectSets.length > 0 && (
-                <Card className="max-w-sm w-full p-4">
-                  <h4 className="font-semibold text-text-primary mb-2">
-                    Tricky pairs you learned:
-                  </h4>
-                  <div className="flex flex-wrap gap-2">
-                    {incorrectSets.map((set) => (
-                      <span
-                        key={set.id}
-                        className="px-3 py-1 bg-success/10 text-success rounded-full text-sm font-medium"
-                      >
-                        {set.words.map((w) => w.word).join(" / ")}
-                      </span>
-                    ))}
-                  </div>
-                </Card>
+                <>
+                  <Card className="max-w-sm w-full p-4">
+                    <h4 className="font-semibold text-text-primary mb-2">
+                      Tricky pairs to learn:
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {incorrectSets.map((set) => (
+                        <span
+                          key={set.id}
+                          className="px-3 py-1 bg-warning/10 text-warning rounded-full text-sm font-medium"
+                        >
+                          {set.words.map((w) => w.word).join(" / ")}
+                        </span>
+                      ))}
+                    </div>
+                  </Card>
+                  <p className="text-sm text-text-muted animate-pulse">
+                    Moving to learning phase in a moment...
+                  </p>
+                </>
               )}
 
               <div className="space-y-4 w-full max-w-xs">
