@@ -1,36 +1,105 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Spelling Master
+
+An engaging spelling learning application for Year 6 students (ages 10-11) in the UK. Master the 100 statutory spellings from the UK National Curriculum, plus homophones and commonly confused words.
+
+## Features
+
+### Spelling Challenge
+- Test your knowledge of 100 statutory Year 6 spellings
+- Pick the correct spelling from two options
+- Learn from mistakes with memorable mnemonics
+- Retest words you got wrong with multiple choice
+- Track progress with mastery levels
+
+### Homophones Practice
+- Master tricky word pairs (their/there/they're, affect/effect, etc.)
+- Fill-in-the-blank sentence completion
+- Learn the differences with helpful tips
+- 18+ homophone sets with practice sentences
+
+### Progress Centre
+- Track your progress across all words
+- View words by mastery status (Mastered, Learning, Needs Work, Not Tried)
+- Build and maintain daily practice streaks
+- Unlock achievements and earn stars
+
+## Tech Stack
+
+- **Framework**: Next.js 14 with App Router
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **Animations**: Framer Motion
+- **Database**: Dexie.js (IndexedDB)
+- **Fonts**: Nunito (primary), Fredoka (display)
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+
+- npm or yarn
+
+### Installation
 
 ```bash
+# Install dependencies
+npm install
+
+# Run development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+# Build for production
+npm run build
+
+# Start production server
+npm start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Development
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The app runs on `http://localhost:3000` by default.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Project Structure
 
-## Learn More
+```
+src/
+├── app/                    # Next.js App Router pages
+│   ├── challenge/          # Spelling challenge page
+│   ├── homophones/         # Homophones practice page
+│   └── progress/           # Progress centre page
+├── components/
+│   ├── ui/                 # Reusable UI components
+│   ├── spelling/           # Spelling challenge components
+│   ├── homophones/         # Homophone practice components
+│   └── progress/           # Progress tracking components
+├── data/
+│   ├── spellings.ts        # 100 statutory words
+│   ├── mnemonics.ts        # Memory tricks for all words
+│   └── homophones.ts       # Homophone sets and sentences
+├── hooks/                  # Custom React hooks
+└── lib/
+    ├── db.ts               # IndexedDB database setup
+    ├── wordUtils.ts        # Word manipulation utilities
+    └── achievements.ts     # Achievement definitions
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Word Mastery Levels
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Words are tracked with four mastery levels:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Mastered**: 5+ attempts with 90%+ accuracy
+- **Learning**: 50-89% accuracy
+- **Needs Work**: Below 50% accuracy
+- **Not Tried**: No attempts yet
 
-## Deploy on Vercel
+## Accessibility
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Full keyboard navigation
+- ARIA labels on interactive elements
+- Minimum 4.5:1 contrast ratio
+- Large touch targets (44px minimum)
+- Screen reader compatible
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## License
+
+MIT

@@ -1,6 +1,7 @@
 {
   "name": "spelling-master",
   "version": "0.1.0",
+  "description": "An engaging spelling learning application for Year 6 students in the UK",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -9,6 +10,8 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "dexie": "^4.2.1",
+    "framer-motion": "^12.23.26",
     "next": "16.0.10",
     "react": "19.2.1",
     "react-dom": "19.2.1"
