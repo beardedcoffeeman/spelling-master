@@ -404,16 +404,19 @@ export async function getStatistics() {
   const streak = await getStreak();
   const sessions = await getRecentSessions(100);
 
-  const mastered = allProgress.filter((p) => p.masteryStatus === "mastered").length;
-  const learning = allProgress.filter((p) => p.masteryStatus === "learning").length;
-  const needsWork = allProgress.filter((p) => p.masteryStatus === "needs_work").length;
-  const notTried = 100 - allProgress.length; // 100 statutory words
+  // Only count statutory spelling words for the main stats (not homophones)
+  const spellingProgress = allProgress.filter((p) => p.category === "statutory");
+  
+  const mastered = spellingProgress.filter((p) => p.masteryStatus === "mastered").length;
+  const learning = spellingProgress.filter((p) => p.masteryStatus === "learning").length;
+  const needsWork = spellingProgress.filter((p) => p.masteryStatus === "needs_work").length;
+  const notTried = 100 - spellingProgress.length; // 100 statutory words
 
-  const totalAttempts = allProgress.reduce(
+  const totalAttempts = spellingProgress.reduce(
     (sum, p) => sum + p.correctCount + p.incorrectCount,
     0
   );
-  const totalCorrect = allProgress.reduce((sum, p) => sum + p.correctCount, 0);
+  const totalCorrect = spellingProgress.reduce((sum, p) => sum + p.correctCount, 0);
 
   return {
     mastered,
