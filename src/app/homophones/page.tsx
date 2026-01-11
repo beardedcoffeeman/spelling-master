@@ -97,7 +97,7 @@ export default function HomophonesPage() {
     
     if (wasJustMastered) {
       // Homophone set was just mastered! Try to catch a Pokemon
-      const caught = await checkAndCatchPokemon(current.set.id, 'homophone', current.set.id);
+      const caught = await checkAndCatchPokemon(current.set.id, 'homophone', 'year6', current.set.id);
       if (caught) {
         setCaughtPokemon(caught);
       }
@@ -185,7 +185,7 @@ export default function HomophonesPage() {
     
     if (wasJustMastered) {
       // Homophone set was just mastered! Try to catch a Pokemon
-      const caught = await checkAndCatchPokemon(current.set.id, 'homophone', current.set.id);
+      const caught = await checkAndCatchPokemon(current.set.id, 'homophone', 'year6', current.set.id);
       if (caught) {
         setCaughtPokemon(caught);
       }
