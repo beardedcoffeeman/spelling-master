@@ -53,7 +53,7 @@ export default function HomePage() {
     loadData();
   }, []);
 
-  const totalWords = yearLevel === "year2" ? 200 : 100;
+  const totalWords = yearLevel === "year2" ? 290 : 100;
   const masteredPercentage = stats ? (stats.mastered / totalWords) * 100 : 0;
 
   return (

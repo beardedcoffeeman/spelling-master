@@ -43,7 +43,7 @@ export function Pokedex() {
     }
   });
 
-  const total = 318; // 100 year6 + 18 homophones + 200 year2
+  const total = 408; // 100 year6 + 18 homophones + 290 year2
   const caught = allPokemon?.length || 0;
   const percentage = Math.round((caught / total) * 100);
   

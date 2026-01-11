@@ -1,7 +1,7 @@
 // Year level type
 export type YearLevel = 'year2' | 'year6';
 
-// Year 2 Spelling List (200+ words)
+// Year 2 Spelling List (290 words)
 export const year2Spellings = [
   "wood", "afraid", "coin", "week", "bright", "coach", "group", "search", "before", "scared",
   "annoying", "thirsty", "statue", "whisper", "phone", "morning", "drew", "tomatoes", "haunted", "Thursday",

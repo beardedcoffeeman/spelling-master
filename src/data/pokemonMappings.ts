@@ -128,7 +128,7 @@ export const spellingPokemonMap: Record<string, PokemonMapping> = {
   "thorough": { word: "thorough", pokemonId: 96, tier: "legendary", category: "spelling" }, // Drowzee
 };
 
-// Year 2 words mapped to Fairy-type Pokemon (200+ words)
+// Year 2 words mapped to Fairy-type Pokemon (290 words)
 // Using Fairy-type Pokemon across generations
 export const fairyPokemonMap: Record<string, PokemonMapping> = {
   // TIER 1 - COMMON (60 words) - Simple/shorter Year 2 words

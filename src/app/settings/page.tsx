@@ -158,7 +158,7 @@ export default function SettingsPage() {
                 <div className="text-4xl mb-2">🧚</div>
                 <div className="font-bold text-text-primary">Year 2</div>
                 <div className="text-sm text-text-muted mt-1">
-                  200 words • Fairy rewards
+                  290 words • Fairy rewards
                 </div>
               </div>
             </button>

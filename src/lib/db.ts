@@ -457,10 +457,10 @@ export async function getStatistics(yearLevel?: "year2" | "year6") {
   // Total words varies by year level
   let totalWords = 100; // default year6
   if (yearLevel === "year2") {
-    totalWords = 200;
+    totalWords = 290;
   } else if (!yearLevel) {
     // If no year specified, we're showing combined stats
-    totalWords = 300; // 100 year6 + 200 year2
+    totalWords = 390; // 100 year6 + 290 year2
   }
   
   const notTried = totalWords - spellingProgress.length;

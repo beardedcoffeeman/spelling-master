@@ -197,7 +197,7 @@ export default function ProgressPage() {
               learning={stats.learning}
               needsWork={stats.needsWork}
               notTried={stats.notTried}
-              total={yearLevel === "year2" ? 200 : 100}
+              total={yearLevel === "year2" ? 290 : 100}
               onCategoryClick={handleCategoryClick}
             />
 

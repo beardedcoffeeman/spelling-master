@@ -179,7 +179,7 @@ export async function getRecentlyCaughtPokemon(limit: number = 5): Promise<Caugh
  * Get completion percentage
  */
 export async function getPokemonCompletionPercentage(): Promise<number> {
-  const total = 118; // 100 spellings + 18 homophones
+  const total = 408; // 100 year6 spellings + 18 homophones + 290 year2 spellings
   const caught = await getCaughtPokemonCount();
   return Math.round((caught / total) * 100);
 }
