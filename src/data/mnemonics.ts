@@ -139,12 +139,12 @@ export const mnemonicsYear2: Record<string, Mnemonic> = {
     tricks: ["WOULD sounds like wood", "Would, could, should all have OULD"],
     tip: "Would = could = should pattern",
   },
-  you're: {
+  "you're": {
     word: "you're",
     tricks: ["YOU'RE = YOU ARE with an apostrophe", "You are = you're"],
     tip: "Short for 'you are'",
   },
-  they're: {
+  "they're": {
     word: "they're",
     tricks: ["THEY'RE = THEY ARE", "They are going = they're going"],
     tip: "Short for 'they are'",

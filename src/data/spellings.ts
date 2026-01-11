@@ -269,8 +269,8 @@ export const commonMisspellingsYear2: Record<string, string[]> = {
   chimney: ["chimny", "chimmney", "chimnie"],
   clothes: ["cloths", "cloathes", "cloes"],
   could: ["cood", "culd", "coulld"],
-  couldn't: ["couldnt", "coodnt", "cudnt"],
-  don't: ["dont", "do'nt", "doent"],
+  "couldn't": ["couldnt", "coodnt", "cudnt"],
+  "don't": ["dont", "do'nt", "doent"],
   energy: ["energey", "enrgy", "enerji"],
   everybody: ["evrybody", "everybodey", "evreybody"],
   friend: ["freind", "frend", "friand"],
@@ -286,13 +286,13 @@ export const commonMisspellingsYear2: Record<string, string[]> = {
   should: ["shood", "shoud", "shuld"],
   station: ["stashun", "stasion", "stattion"],
   television: ["telavision", "televishun", "televison"],
-  they're: ["their", "there", "theyre"],
+  "they're": ["their", "there", "theyre"],
   treasure: ["tresure", "treasur", "treshure"],
   village: ["vilage", "villij", "villige"],
   whisper: ["wisper", "whissper", "whispur"],
   would: ["wood", "wuld", "woud"],
-  wouldn't: ["wouldnt", "woodnt", "wudnt"],
-  you're: ["your", "youre", "yr"],
+  "wouldn't": ["wouldnt", "woodnt", "wudnt"],
+  "you're": ["your", "youre", "yr"],
 };
 
 // Get a random selection of words for a challenge
