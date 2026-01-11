@@ -7,6 +7,7 @@ export interface WordProgress {
   id?: number;
   word: string;
   category: "statutory" | "homophone";
+  yearLevel: "year2" | "year6";
   correctCount: number;
   incorrectCount: number;
   lastAttemptAt: string | null;
@@ -47,6 +48,7 @@ export interface UserSettings {
   id?: number;
   soundEnabled: boolean;
   dyslexiaMode: boolean;
+  yearLevel: "year2" | "year6";
   createdAt: string;
   lastActiveAt: string;
 }
@@ -58,6 +60,7 @@ export interface CaughtPokemon {
   pokemonSprite: string;
   word: string;
   category: 'spelling' | 'homophone';
+  yearLevel: 'year2' | 'year6';
   tier: string;
   caughtAt: string;
   masteryDate: string;
@@ -101,6 +104,28 @@ class SpellingMasterDB extends Dexie {
       userSettings: "++id",
       caughtPokemon: "++id, pokemonId, word, category, caughtAt",
     });
+
+    // Version 3: Add yearLevel fields
+    this.version(3).stores({
+      wordProgress: "++id, word, category, yearLevel, masteryStatus, lastAttemptAt",
+      homophoneProgress: "++id, homophoneSetId, lastAttemptAt",
+      sessions: "++id, startedAt, completedAt, type",
+      achievements: "++id, achievementId, unlockedAt",
+      streaks: "++id, lastPracticeDate",
+      userSettings: "++id",
+      caughtPokemon: "++id, pokemonId, word, category, yearLevel, caughtAt",
+    }).upgrade(async (trans) => {
+      // Migrate existing data to include yearLevel
+      await trans.table("wordProgress").toCollection().modify((progress) => {
+        progress.yearLevel = "year6"; // Default existing words to year6
+      });
+      await trans.table("caughtPokemon").toCollection().modify((pokemon) => {
+        pokemon.yearLevel = "year6"; // Default existing catches to year6
+      });
+      await trans.table("userSettings").toCollection().modify((settings) => {
+        settings.yearLevel = "year6"; // Default to year6 for existing users
+      });
+    });
   }
 }
 
@@ -141,10 +166,23 @@ export async function getWordsByStatus(status: MasteryStatus): Promise<WordProgr
   return db.wordProgress.where("masteryStatus").equals(status).toArray();
 }
 
+export async function getWordProgressByYear(yearLevel: "year2" | "year6"): Promise<WordProgress[]> {
+  return db.wordProgress.where("yearLevel").equals(yearLevel).toArray();
+}
+
+export async function getWordsByStatusAndYear(
+  status: MasteryStatus,
+  yearLevel: "year2" | "year6"
+): Promise<WordProgress[]> {
+  const allByYear = await getWordProgressByYear(yearLevel);
+  return allByYear.filter((p) => p.masteryStatus === status);
+}
+
 export async function recordWordAttempt(
   word: string,
   correct: boolean,
-  category: "statutory" | "homophone" = "statutory"
+  category: "statutory" | "homophone" = "statutory",
+  yearLevel: "year2" | "year6" = "year6"
 ): Promise<{ wasJustMastered: boolean; masteryStatus: MasteryStatus }> {
   const existing = await getWordProgress(word);
   const now = new Date().toISOString();
@@ -180,6 +218,7 @@ export async function recordWordAttempt(
     await db.wordProgress.add({
       word,
       category,
+      yearLevel,
       correctCount,
       incorrectCount,
       lastAttemptAt: now,
@@ -375,6 +414,7 @@ export async function getUserSettings(): Promise<UserSettings> {
   const id = await db.userSettings.add({
     soundEnabled: false, // Off by default
     dyslexiaMode: false,
+    yearLevel: "year6", // Default to year6
     createdAt: now,
     lastActiveAt: now,
   });
@@ -383,13 +423,14 @@ export async function getUserSettings(): Promise<UserSettings> {
     id: id as number,
     soundEnabled: false,
     dyslexiaMode: false,
+    yearLevel: "year6",
     createdAt: now,
     lastActiveAt: now,
   };
 }
 
 export async function updateUserSettings(
-  settings: Partial<Pick<UserSettings, "soundEnabled" | "dyslexiaMode">>
+  settings: Partial<Pick<UserSettings, "soundEnabled" | "dyslexiaMode" | "yearLevel">>
 ): Promise<void> {
   const current = await getUserSettings();
   await db.userSettings.update(current.id!, {
@@ -399,8 +440,10 @@ export async function updateUserSettings(
 }
 
 // Statistics Functions
-export async function getStatistics() {
-  const allProgress = await getAllWordProgress();
+export async function getStatistics(yearLevel?: "year2" | "year6") {
+  const allProgress = yearLevel 
+    ? await getWordProgressByYear(yearLevel)
+    : await getAllWordProgress();
   const streak = await getStreak();
   const sessions = await getRecentSessions(100);
 
@@ -410,7 +453,17 @@ export async function getStatistics() {
   const mastered = spellingProgress.filter((p) => p.masteryStatus === "mastered").length;
   const learning = spellingProgress.filter((p) => p.masteryStatus === "learning").length;
   const needsWork = spellingProgress.filter((p) => p.masteryStatus === "needs_work").length;
-  const notTried = 100 - spellingProgress.length; // 100 statutory words
+  
+  // Total words varies by year level
+  let totalWords = 100; // default year6
+  if (yearLevel === "year2") {
+    totalWords = 200;
+  } else if (!yearLevel) {
+    // If no year specified, we're showing combined stats
+    totalWords = 300; // 100 year6 + 200 year2
+  }
+  
+  const notTried = totalWords - spellingProgress.length;
 
   const totalAttempts = spellingProgress.reduce(
     (sum, p) => sum + p.correctCount + p.incorrectCount,

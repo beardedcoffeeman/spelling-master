@@ -10,10 +10,12 @@ import { Button } from "@/components/ui/Button";
 
 type FilterType = 'all' | 'spelling' | 'homophone';
 type FilterTier = 'all' | 'common' | 'uncommon' | 'rare' | 'legendary';
+type FilterYear = 'all' | 'year2' | 'year6';
 
 export function Pokedex() {
   const [filterType, setFilterType] = useState<FilterType>('all');
   const [filterTier, setFilterTier] = useState<FilterTier>('all');
+  const [filterYear, setFilterYear] = useState<FilterYear>('all');
   const [sortBy, setSortBy] = useState<'number' | 'recent' | 'name'>('number');
 
   // Fetch all caught Pokemon
@@ -23,6 +25,7 @@ export function Pokedex() {
   const filteredPokemon = allPokemon?.filter(pokemon => {
     if (filterType !== 'all' && pokemon.category !== filterType) return false;
     if (filterTier !== 'all' && pokemon.tier !== filterTier) return false;
+    if (filterYear !== 'all' && pokemon.yearLevel !== filterYear) return false;
     return true;
   });
 
@@ -40,9 +43,15 @@ export function Pokedex() {
     }
   });
 
-  const total = 118; // 100 spellings + 18 homophones
+  const total = 318; // 100 year6 + 18 homophones + 200 year2
   const caught = allPokemon?.length || 0;
   const percentage = Math.round((caught / total) * 100);
+  
+  // Count by year
+  const yearCounts = {
+    year2: allPokemon?.filter(p => p.yearLevel === 'year2').length || 0,
+    year6: allPokemon?.filter(p => p.yearLevel === 'year6').length || 0,
+  };
 
   // Count by tier
   const tierCounts = {
@@ -56,7 +65,8 @@ export function Pokedex() {
     <div className="space-y-6">
       {/* Header Stats */}
       <Card className="p-6 text-center bg-gradient-to-br from-primary to-primary-dark text-white">
-        <h1 className="text-4xl font-display mb-2">Pokédex</h1>
+        <h1 className="text-4xl font-display mb-2">Creature Collection</h1>
+        <p className="text-sm opacity-75 mb-3">Pokémon & Fairies</p>
         <p className="text-5xl font-bold mb-1">
           {caught} / {total}
         </p>
@@ -72,6 +82,18 @@ export function Pokedex() {
             transition={{ duration: 1, ease: "easeOut" }}
             className="bg-white h-full rounded-full"
           />
+        </div>
+        
+        {/* Year breakdown */}
+        <div className="grid grid-cols-2 gap-4 mt-4 text-sm">
+          <div>
+            <p className="opacity-75">Year 6 Pokémon</p>
+            <p className="text-2xl font-bold">{yearCounts.year6}</p>
+          </div>
+          <div>
+            <p className="opacity-75">Year 2 Fairies</p>
+            <p className="text-2xl font-bold">{yearCounts.year2}</p>
+          </div>
         </div>
       </Card>
 
@@ -102,6 +124,36 @@ export function Pokedex() {
       {/* Filters */}
       <Card className="p-4">
         <div className="space-y-4">
+          {/* Year Filter */}
+          <div>
+            <label className="block text-sm font-semibold text-text-primary mb-2">
+              Filter by Year Level
+            </label>
+            <div className="flex gap-2">
+              <Button
+                variant={filterYear === 'all' ? 'primary' : 'secondary'}
+                size="sm"
+                onClick={() => setFilterYear('all')}
+              >
+                All
+              </Button>
+              <Button
+                variant={filterYear === 'year2' ? 'primary' : 'secondary'}
+                size="sm"
+                onClick={() => setFilterYear('year2')}
+              >
+                🧚 Year 2 Fairies
+              </Button>
+              <Button
+                variant={filterYear === 'year6' ? 'primary' : 'secondary'}
+                size="sm"
+                onClick={() => setFilterYear('year6')}
+              >
+                📖 Year 6 Pokémon
+              </Button>
+            </div>
+          </div>
+
           {/* Type Filter */}
           <div>
             <label className="block text-sm font-semibold text-text-primary mb-2">

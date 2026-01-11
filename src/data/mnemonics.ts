@@ -7,6 +7,247 @@ export interface Mnemonic {
   visual?: string;
 }
 
+// Year 2 Mnemonics - Age-appropriate memory tricks
+export const mnemonicsYear2: Record<string, Mnemonic> = {
+  afraid: {
+    word: "afraid",
+    tricks: ["A FRAID cat is afraid of everything!", "af-RAID - like a scary raid!"],
+    tip: "Think of a scared cat!",
+  },
+  because: {
+    word: "because",
+    tricks: ["Big Elephants Can Always Understand Small Elephants", "be-CAUSE - what's the cause?"],
+    tip: "Remember the elephants!",
+  },
+  beautiful: {
+    word: "beautiful",
+    tricks: ["Big Elephants Are Useful To In Flying Up Lightly", "beauty is FULL"],
+    tip: "Beautiful has 'beauty' inside it",
+  },
+  before: {
+    word: "before",
+    tricks: ["be-FORE - before four o'clock", "BEE came beFORE the flower"],
+    tip: "Think about time - before the hour",
+  },
+  brother: {
+    word: "brother",
+    tricks: ["BRO-ther - your bro!", "Brothers like OTHER brothers"],
+    tip: "Brother has 'other' in it",
+  },
+  children: {
+    word: "children",
+    tricks: ["child-REN - more than one child", "CHILD at the begiRENning"],
+    tip: "More than one child = children",
+  },
+  chimney: {
+    word: "chimney",
+    tricks: ["CHIM goes UP the chimNEY", "Chimney rhymes with Sidney"],
+    tip: "Remember the EY at the end",
+  },
+  clothes: {
+    word: "clothes",
+    tricks: ["CLO-THES you wear", "The 'e' is silent like in 'breathe'"],
+    tip: "Silent E at the end",
+  },
+  could: {
+    word: "could",
+    tricks: ["COULD has 'ould' like would and should", "COU-LD you help?"],
+    tip: "Remember: could, would, should",
+  },
+  everybody: {
+    word: "everybody",
+    tricks: ["EVERY-BODY has a body!", "Every single body = everybody"],
+    tip: "Two words joined together",
+  },
+  friend: {
+    word: "friend",
+    tricks: ["A FRIEND to the END", "FRI-END - friends until the end"],
+    tip: "Friends until the END",
+  },
+  great: {
+    word: "great",
+    tricks: ["GREAT has EAT in it - great to eat!", "GR-EAT like eat"],
+    tip: "Great food to EAT",
+  },
+  gnome: {
+    word: "gnome",
+    tricks: ["The G is silent in GNOME", "NO-ME garden gnome"],
+    tip: "Silent G at the start",
+  },
+  knock: {
+    word: "knock",
+    tricks: ["The K is silent when you KNOCK", "KNOCK says 'NOK'"],
+    tip: "Silent K - sounds like 'nok'",
+  },
+  knight: {
+    word: "knight",
+    tricks: ["KNIGHT fights at NIGHT", "K is silent - sounds like 'night'"],
+    tip: "Knight = sounds like night",
+  },
+  mother: {
+    word: "mother",
+    tricks: ["MO-THER rhymes with other", "Mother has OTHER in it"],
+    tip: "Mother and other rhyme",
+  },
+  morning: {
+    word: "morning",
+    tricks: ["MORN-ING is the start of day", "Morning has 'or' not 'our'"],
+    tip: "Morning time starts with 'morn'",
+  },
+  people: {
+    word: "people",
+    tricks: ["PEO-PLE love apples", "People has two E's"],
+    tip: "Remember PEO not PEE",
+  },
+  pretty: {
+    word: "pretty",
+    tricks: ["PRET-TY like a pretty tie", "Pretty has two T's"],
+    tip: "Two T's in pretty",
+  },
+  should: {
+    word: "should",
+    tricks: ["SHOULD rhymes with could and would", "SHOU-LD you go?"],
+    tip: "Like could and would",
+  },
+  station: {
+    word: "station",
+    tricks: ["STA-TION makes a 'shun' sound", "Train STATION"],
+    tip: "TION says 'shun'",
+  },
+  television: {
+    word: "television",
+    tricks: ["TELE-VISION - seeing from far away", "TELE means far, VISION means seeing"],
+    tip: "Vision you can see on TV",
+  },
+  treasure: {
+    word: "treasure",
+    tricks: ["TREA-SURE like pleasure", "Hidden TREASURE"],
+    tip: "SURE at the end",
+  },
+  village: {
+    word: "village",
+    tricks: ["VILL-AGE like an age-old village", "Village has two L's"],
+    tip: "Remember the two L's",
+  },
+  whisper: {
+    word: "whisper",
+    tricks: ["WHIS-PER - shhh whisper quietly", "WHISper has WH like WHite"],
+    tip: "Whisper starts with WH",
+  },
+  would: {
+    word: "would",
+    tricks: ["WOULD sounds like wood", "Would, could, should all have OULD"],
+    tip: "Would = could = should pattern",
+  },
+  you're: {
+    word: "you're",
+    tricks: ["YOU'RE = YOU ARE with an apostrophe", "You are = you're"],
+    tip: "Short for 'you are'",
+  },
+  they're: {
+    word: "they're",
+    tricks: ["THEY'RE = THEY ARE", "They are going = they're going"],
+    tip: "Short for 'they are'",
+  },
+  there: {
+    word: "there",
+    tricks: ["THERE has HERE in it - over there!", "T-HERE"],
+    tip: "There = place (has 'here')",
+  },
+  their: {
+    word: "their",
+    tricks: ["THEIR has HEIR in it - it's theirs!", "Their belonging = their"],
+    tip: "Their = belonging to them",
+  },
+  butterfly: {
+    word: "butterfly",
+    tricks: ["BUTTER-FLY - two words together!", "Butter that can fly!"],
+    tip: "Butter + fly = butterfly",
+  },
+  rainbow: {
+    word: "rainbow",
+    tricks: ["RAIN-BOW in the sky", "Rain + bow = rainbow"],
+    tip: "Two words joined: rain and bow",
+  },
+  hospital: {
+    word: "hospital",
+    tricks: ["HOS-PIT-AL for sick people", "Hospital ends in AL not LE"],
+    tip: "Remember: AL not LE at end",
+  },
+  animal: {
+    word: "animal",
+    tricks: ["ANI-MAL ends in AL", "Animals are alive = ANI-MAL"],
+    tip: "Ends in AL like hospital",
+  },
+  national: {
+    word: "national",
+    tricks: ["NA-TION-AL for the whole nation", "TION makes 'shun' sound"],
+    tip: "TION-AL pattern",
+  },
+  // Common suffix patterns
+  copying: {
+    word: "copying",
+    tricks: ["COPY + ING = copying", "Drop the Y, add YING"],
+    tip: "Y becomes Y-ING",
+  },
+  copied: {
+    word: "copied",
+    tricks: ["COPY becomes COPIED", "Y becomes IED"],
+    tip: "Y changes to IED",
+  },
+  flies: {
+    word: "flies",
+    tricks: ["FLY becomes FLIES", "Change Y to IES"],
+    tip: "Y to IES for plural",
+  },
+  babies: {
+    word: "babies",
+    tricks: ["BABY becomes BABIES", "Y changes to IES"],
+    tip: "More than one baby = babies",
+  },
+  happier: {
+    word: "happier",
+    tricks: ["HAPPY becomes HAPPIER", "Y to IER for comparison"],
+    tip: "Y changes to IER",
+  },
+  happiest: {
+    word: "happiest",
+    tricks: ["HAPPY becomes HAPPIEST", "Y to IEST for most"],
+    tip: "Y to IEST = most happy",
+  },
+  running: {
+    word: "running",
+    tricks: ["RUN + NING = running", "Double the N before ING"],
+    tip: "Double N before ING",
+  },
+  clapped: {
+    word: "clapped",
+    tricks: ["CLAP + PED = clapped", "Double the P before ED"],
+    tip: "Double P before ED",
+  },
+  // Silent letters
+  wrap: {
+    word: "wrap",
+    tricks: ["Silent W in WRAP", "RAP with a W in front"],
+    tip: "W is silent - sounds like 'rap'",
+  },
+  write: {
+    word: "write",
+    tricks: ["Silent W in WRITE", "RITE with a W"],
+    tip: "W is silent",
+  },
+  knit: {
+    word: "knit",
+    tricks: ["Silent K in KNIT", "Sounds like 'nit'"],
+    tip: "K is silent",
+  },
+  climb: {
+    word: "climb",
+    tricks: ["Silent B in CLIMB", "CLIM-B up high"],
+    tip: "B is silent at the end",
+  },
+};
+
 export const mnemonics: Record<string, Mnemonic> = {
   accommodate: {
     word: "accommodate",
@@ -866,13 +1107,14 @@ export const mnemonics: Record<string, Mnemonic> = {
 };
 
 // Get mnemonic for a word
-export function getMnemonic(word: string): Mnemonic | undefined {
-  return mnemonics[word.toLowerCase()];
+export function getMnemonic(word: string, yearLevel: 'year2' | 'year6' = 'year6'): Mnemonic | undefined {
+  const mnemonicList = yearLevel === 'year2' ? mnemonicsYear2 : mnemonics;
+  return mnemonicList[word.toLowerCase()];
 }
 
 // Get a random mnemonic trick for a word
-export function getRandomTrick(word: string): string | undefined {
-  const mnemonic = getMnemonic(word);
+export function getRandomTrick(word: string, yearLevel: 'year2' | 'year6' = 'year6'): string | undefined {
+  const mnemonic = getMnemonic(word, yearLevel);
   if (!mnemonic || mnemonic.tricks.length === 0) return undefined;
   return mnemonic.tricks[Math.floor(Math.random() * mnemonic.tricks.length)];
 }

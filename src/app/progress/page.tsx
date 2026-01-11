@@ -10,15 +10,16 @@ import { WordList } from "@/components/progress/WordList";
 import { AchievementGrid } from "@/components/progress/AchievementGrid";
 import { StreakDisplay } from "@/components/progress/StreakDisplay";
 import {
-  getAllWordProgress,
+  getWordProgressByYear,
   getStreak,
   getStatistics,
+  getUserSettings,
   type WordProgress,
   type MasteryStatus,
   type Streak,
 } from "@/lib/db";
 import { getAchievementsWithStatus, getTotalStars } from "@/lib/achievements";
-import { statutorySpellings } from "@/data/spellings";
+import { statutorySpellings, year2Spellings } from "@/data/spellings";
 
 type Tab = "overview" | "words" | "achievements";
 
@@ -26,6 +27,7 @@ export default function ProgressPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [isLoading, setIsLoading] = useState(true);
+  const [yearLevel, setYearLevel] = useState<"year2" | "year6">("year6");
 
   // Data state
   const [wordProgress, setWordProgress] = useState<WordProgress[]>([]);
@@ -49,11 +51,14 @@ export default function ProgressPage() {
   useEffect(() => {
     async function loadData() {
       try {
+        const settings = await getUserSettings();
+        setYearLevel(settings.yearLevel);
+        
         const [progress, streakData, statsData, achievementsData, starsData] =
           await Promise.all([
-            getAllWordProgress(),
+            getWordProgressByYear(settings.yearLevel),
             getStreak(),
-            getStatistics(),
+            getStatistics(settings.yearLevel),
             getAchievementsWithStatus(),
             getTotalStars(),
           ]);
@@ -82,11 +87,13 @@ export default function ProgressPage() {
     if (status === "not_tried") {
       // Words not in progress yet
       const triedWords = new Set(wordProgress.map((p) => p.word));
-      return statutorySpellings
+      const wordList = yearLevel === "year2" ? year2Spellings : statutorySpellings;
+      return wordList
         .filter((word) => !triedWords.has(word))
         .map((word) => ({
           word,
           category: "statutory" as const,
+          yearLevel,
           correctCount: 0,
           incorrectCount: 0,
           lastAttemptAt: null,
@@ -133,7 +140,7 @@ export default function ProgressPage() {
               ← Back
             </Button>
             <h1 className="text-xl font-bold text-warning font-display">
-              Progress Centre
+              {yearLevel === "year2" ? "Year 2" : "Year 6"} Progress
             </h1>
             <div className="flex items-center gap-1 text-sm font-semibold text-warning">
               <span>⭐</span>
@@ -190,7 +197,7 @@ export default function ProgressPage() {
               learning={stats.learning}
               needsWork={stats.needsWork}
               notTried={stats.notTried}
-              total={100}
+              total={yearLevel === "year2" ? 200 : 100}
               onCategoryClick={handleCategoryClick}
             />
 

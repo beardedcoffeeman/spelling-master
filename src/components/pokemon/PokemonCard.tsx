@@ -46,6 +46,13 @@ export function PokemonCard({ pokemon, onClick }: PokemonCardProps) {
             {pokemon.tier === 'common' && '🔵'}
           </span>
         </div>
+        
+        {/* Year Level Badge */}
+        <div className="absolute top-0 left-0">
+          <span className="inline-block px-2 py-1 rounded-full text-xs font-bold bg-white/90">
+            {pokemon.yearLevel === 'year2' ? '🧚' : '📖'}
+          </span>
+        </div>
       </div>
       
       {/* Pokemon Info */}

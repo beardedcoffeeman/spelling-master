@@ -9,9 +9,9 @@ import { WordChoice, MultipleChoice } from "@/components/spelling/WordChoice";
 import { TypeWord } from "@/components/spelling/TypeWord";
 import { MnemonicCard } from "@/components/spelling/MnemonicCard";
 import { ResultsSummary } from "@/components/spelling/ResultsSummary";
-import { getRandomWords } from "@/data/spellings";
+import { getRandomWordsByYear } from "@/data/spellings";
 import { createMultipleChoiceOptions, getMisspellingsForWord } from "@/lib/wordUtils";
-import { recordWordAttempt, startSession, updateSession, completeSession, type CaughtPokemon } from "@/lib/db";
+import { recordWordAttempt, startSession, updateSession, completeSession, getUserSettings, type CaughtPokemon } from "@/lib/db";
 import { checkAndUnlockAchievements, checkPerfectRound } from "@/lib/achievements";
 import { checkAndCatchPokemon } from "@/lib/pokemonRewards";
 import { CatchAnimation } from "@/components/pokemon";
@@ -39,6 +39,7 @@ export default function ChallengePage() {
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [phase, setPhase] = useState<ChallengePhase>("start");
   const [currentStep, setCurrentStep] = useState(0);
+  const [yearLevel, setYearLevel] = useState<"year2" | "year6">("year6");
   
   // Quiz state
   const [words, setWords] = useState<string[]>([]);
@@ -57,9 +58,18 @@ export default function ChallengePage() {
   // Pokemon catch state
   const [caughtPokemon, setCaughtPokemon] = useState<CaughtPokemon | null>(null);
 
+  // Load year level from settings
+  useEffect(() => {
+    async function loadYearLevel() {
+      const settings = await getUserSettings();
+      setYearLevel(settings.yearLevel);
+    }
+    loadYearLevel();
+  }, []);
+
   // Start a new challenge
   const startChallenge = useCallback(async () => {
-    const newWords = getRandomWords(QUIZ_SIZE);
+    const newWords = getRandomWordsByYear(yearLevel, QUIZ_SIZE);
     setWords(newWords);
     setCurrentIndex(0);
     setResults([]);
@@ -73,7 +83,7 @@ export default function ChallengePage() {
     // Start a new session in the database
     const id = await startSession("spelling");
     setSessionId(id);
-  }, []);
+  }, [yearLevel]);
 
   // Handle quiz answer
   const handleQuizAnswer = useCallback(async (isCorrect: boolean) => {
@@ -87,11 +97,11 @@ export default function ChallengePage() {
     setResults((prev) => [...prev, result]);
     
     // Record in database and check for Pokemon catch
-    const { wasJustMastered } = await recordWordAttempt(currentWord, isCorrect);
+    const { wasJustMastered } = await recordWordAttempt(currentWord, isCorrect, "statutory", yearLevel);
     
     if (wasJustMastered) {
       // Word was just mastered! Try to catch a Pokemon
-      const caught = await checkAndCatchPokemon(currentWord, 'spelling');
+      const caught = await checkAndCatchPokemon(currentWord, 'spelling', yearLevel);
       if (caught) {
         setCaughtPokemon(caught);
       }
@@ -177,11 +187,11 @@ export default function ChallengePage() {
     setRetestResults((prev) => [...prev, result]);
     
     // Record in database and check for Pokemon catch
-    const { wasJustMastered } = await recordWordAttempt(currentWord, isCorrect);
+    const { wasJustMastered } = await recordWordAttempt(currentWord, isCorrect, "statutory", yearLevel);
     
     if (wasJustMastered) {
       // Word was just mastered! Try to catch a Pokemon
-      const caught = await checkAndCatchPokemon(currentWord, 'spelling');
+      const caught = await checkAndCatchPokemon(currentWord, 'spelling', yearLevel);
       if (caught) {
         setCaughtPokemon(caught);
       }
@@ -268,7 +278,7 @@ export default function ChallengePage() {
               ← Back
             </Button>
             <h1 className="text-xl font-bold text-primary font-display">
-              Spelling Challenge
+              {yearLevel === "year2" ? "Year 2" : "Year 6"} Spelling Challenge
             </h1>
             <div className="w-16" /> {/* Spacer for centering */}
           </div>
@@ -402,6 +412,7 @@ export default function ChallengePage() {
                 <MnemonicCard
                   word={currentLearningWord}
                   onContinue={handleMnemonicComplete}
+                  yearLevel={yearLevel}
                 />
               ) : (
                 <TypeWord

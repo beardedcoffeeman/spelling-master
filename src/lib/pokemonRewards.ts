@@ -1,7 +1,7 @@
 // Pokémon rewards system - handles catching Pokémon when words are mastered
 
 import { db, CaughtPokemon } from './db';
-import { spellingPokemonMap, homophonePokemonMap } from '@/data/pokemonMappings';
+import { getPokemonForWord, homophonePokemonMap } from '@/data/pokemonMappings';
 import { getCachedPokemon } from './pokeapi';
 
 /**
@@ -11,26 +11,30 @@ import { getCachedPokemon } from './pokeapi';
 export async function checkAndCatchPokemon(
   word: string,
   category: 'spelling' | 'homophone',
+  yearLevel: 'year2' | 'year6' = 'year6',
   homophoneSetId?: string
 ): Promise<CaughtPokemon | null> {
   try {
     // Get the Pokemon mapping for this word
-    const mapping = category === 'spelling' 
-      ? spellingPokemonMap[word]
-      : homophonePokemonMap[homophoneSetId || ''];
+    let mapping;
+    if (category === 'spelling') {
+      mapping = getPokemonForWord(word, yearLevel);
+    } else {
+      mapping = homophonePokemonMap[homophoneSetId || ''];
+    }
     
     if (!mapping) {
-      console.warn(`No Pokémon mapping found for: ${word} (${category})`);
+      console.warn(`No Pokémon mapping found for: ${word} (${category}, ${yearLevel})`);
       return null;
     }
     
-    // Check if already caught (by word and category)
+    // Check if already caught (by word, category, and year level)
     const existing = await db.caughtPokemon
-      .where({ word: mapping.word, category })
+      .where({ word: mapping.word, category, yearLevel })
       .first();
     
     if (existing) {
-      console.log(`Pokémon already caught for: ${word}`);
+      console.log(`Pokémon already caught for: ${word} (${yearLevel})`);
       return null; // Already caught this Pokémon
     }
     
@@ -44,6 +48,7 @@ export async function checkAndCatchPokemon(
       pokemonSprite: pokemonData.sprite,
       word: mapping.word,
       category,
+      yearLevel,
       tier: mapping.tier,
       caughtAt: new Date().toISOString(),
       masteryDate: new Date().toISOString(),
@@ -58,7 +63,8 @@ export async function checkAndCatchPokemon(
     const id = await db.caughtPokemon.add(caught);
     caught.id = id;
     
-    console.log(`✨ Caught ${pokemonData.name} for mastering: ${word}`);
+    const creatureType = yearLevel === 'year2' ? 'Fairy' : 'Pokémon';
+    console.log(`✨ Caught ${creatureType} ${pokemonData.name} for mastering: ${word}`);
     
     return caught;
   } catch (error) {
@@ -84,6 +90,15 @@ export async function getCaughtPokemonByCategory(
 }
 
 /**
+ * Get caught Pokémon by year level
+ */
+export async function getCaughtPokemonByYear(
+  yearLevel: 'year2' | 'year6'
+): Promise<CaughtPokemon[]> {
+  return await db.caughtPokemon.where({ yearLevel }).toArray();
+}
+
+/**
  * Get caught Pokémon by tier
  */
 export async function getCaughtPokemonByTier(
@@ -97,8 +112,12 @@ export async function getCaughtPokemonByTier(
  */
 export async function getCaughtPokemonByWord(
   word: string,
-  category: 'spelling' | 'homophone'
+  category: 'spelling' | 'homophone',
+  yearLevel?: 'year2' | 'year6'
 ): Promise<CaughtPokemon | undefined> {
+  if (yearLevel) {
+    return await db.caughtPokemon.where({ word, category, yearLevel }).first();
+  }
   return await db.caughtPokemon.where({ word, category }).first();
 }
 
@@ -135,8 +154,13 @@ export async function getCaughtPokemonCountByTier(): Promise<{
  */
 export async function hasCaughtPokemonForWord(
   word: string,
-  category: 'spelling' | 'homophone'
+  category: 'spelling' | 'homophone',
+  yearLevel?: 'year2' | 'year6'
 ): Promise<boolean> {
+  if (yearLevel) {
+    const count = await db.caughtPokemon.where({ word, category, yearLevel }).count();
+    return count > 0;
+  }
   const count = await db.caughtPokemon.where({ word, category }).count();
   return count > 0;
 }

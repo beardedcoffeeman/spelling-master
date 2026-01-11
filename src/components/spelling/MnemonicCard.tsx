@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/Card";
 interface MnemonicCardProps {
   word: string;
   onContinue: () => void;
+  yearLevel?: "year2" | "year6";
 }
 
 // Visual emojis for different mnemonic visuals
@@ -38,8 +39,8 @@ const visualEmojis: Record<string, string> = {
   awkward_person: "🫣",
 };
 
-export function MnemonicCard({ word, onContinue }: MnemonicCardProps) {
-  const mnemonic = getMnemonic(word);
+export function MnemonicCard({ word, onContinue, yearLevel = "year6" }: MnemonicCardProps) {
+  const mnemonic = getMnemonic(word, yearLevel);
 
   if (!mnemonic) {
     // Fallback if no mnemonic found

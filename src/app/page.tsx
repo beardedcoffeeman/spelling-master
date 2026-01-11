@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { CircularProgress } from "@/components/ui/ProgressBar";
-import { getStatistics, getStreak, type Streak } from "@/lib/db";
+import { getStatistics, getStreak, getUserSettings, type Streak } from "@/lib/db";
 import { getTotalStars } from "@/lib/achievements";
 import { getCaughtPokemonCount } from "@/lib/pokemonRewards";
 
@@ -25,13 +25,17 @@ export default function HomePage() {
   const [streak, setStreak] = useState<Streak | null>(null);
   const [stars, setStars] = useState(0);
   const [pokemonCount, setPokemonCount] = useState(0);
+  const [yearLevel, setYearLevel] = useState<"year2" | "year6">("year6");
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function loadData() {
       try {
+        const settings = await getUserSettings();
+        setYearLevel(settings.yearLevel);
+        
         const [statsData, streakData, starsData, pokemonCountData] = await Promise.all([
-          getStatistics(),
+          getStatistics(settings.yearLevel),
           getStreak(),
           getTotalStars(),
           getCaughtPokemonCount(),
@@ -49,7 +53,7 @@ export default function HomePage() {
     loadData();
   }, []);
 
-  const totalWords = 100;
+  const totalWords = yearLevel === "year2" ? 200 : 100;
   const masteredPercentage = stats ? (stats.mastered / totalWords) * 100 : 0;
 
   return (
@@ -61,8 +65,19 @@ export default function HomePage() {
             backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
           }} />
         </div>
+
+        {/* Settings Link */}
+        <div className="relative max-w-4xl mx-auto px-4 pt-4">
+          <div className="flex justify-end">
+            <Link href="/settings">
+              <Button variant="ghost" className="text-white hover:bg-white/10">
+                ⚙️ Settings
+              </Button>
+            </Link>
+          </div>
+        </div>
         
-        <div className="relative max-w-4xl mx-auto px-4 py-12">
+        <div className="relative max-w-4xl mx-auto px-4 py-8">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -76,8 +91,11 @@ export default function HomePage() {
               Spelling Master
             </motion.h1>
             <p className="text-xl text-white/80">
-              Master Year 6 spellings with fun challenges!
+              Master {yearLevel === "year2" ? "Year 2" : "Year 6"} spellings with fun challenges!
             </p>
+            <div className="mt-2 inline-block px-4 py-2 bg-white/10 rounded-full text-sm">
+              {yearLevel === "year2" ? "🧚 Year 2 Mode - Collecting Fairies!" : "📖 Year 6 Mode - Collecting Pokémon!"}
+            </div>
           </motion.div>
 
           {/* Quick Stats */}
@@ -136,7 +154,7 @@ export default function HomePage() {
                     <span className="text-2xl font-bold text-text-primary">
                       {stats.mastered}
                     </span>
-                    <span className="text-sm text-text-muted block">of 100</span>
+                    <span className="text-sm text-text-muted block">of {totalWords}</span>
                   </div>
                 </CircularProgress>
 
@@ -194,7 +212,7 @@ export default function HomePage() {
                   Spelling Challenge
                 </h3>
                 <p className="text-text-secondary text-sm mb-4 flex-1">
-                  Test your knowledge of the 100 statutory Year 6 spellings.
+                  Test your knowledge of the {totalWords} {yearLevel === "year2" ? "Year 2" : "Year 6"} spellings.
                   Learn from mistakes with memory tricks!
                 </p>
                 <Button size="lg" fullWidth>
@@ -269,10 +287,10 @@ export default function HomePage() {
               >
                 <div className="text-6xl mb-4">📖</div>
                 <h3 className="text-xl font-bold text-text-primary font-display mb-2">
-                  Pokédex
+                  {yearLevel === "year2" ? "Fairy Collection" : "Pokédex"}
                 </h3>
                 <p className="text-text-secondary text-sm mb-4 flex-1">
-                  Catch Pokémon by mastering words! View your collection and track your catches.
+                  Catch {yearLevel === "year2" ? "Fairies" : "Pokémon"} by mastering words! View your collection and track your catches.
                 </p>
                 <Button className="bg-red-500 hover:bg-red-600 text-white" size="lg" fullWidth>
                   Open Pokédex
