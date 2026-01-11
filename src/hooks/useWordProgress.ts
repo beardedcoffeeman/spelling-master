@@ -74,6 +74,7 @@ export function useWordProgress() {
           .map((word) => ({
             word,
             category: "statutory" as const,
+            yearLevel: "year6" as const,
             correctCount: 0,
             incorrectCount: 0,
             lastAttemptAt: null,
